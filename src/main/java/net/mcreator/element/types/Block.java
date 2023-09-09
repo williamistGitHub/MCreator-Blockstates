@@ -72,6 +72,9 @@ import java.util.stream.Collectors;
 	public boolean connectedSides;
 	public String transparencyType;
 
+	public boolean useCustomBlockstates;
+	public List<Blockstate> blockstates;
+
 	public boolean disableOffset;
 	public List<BoxEntry> boundingBoxes;
 
@@ -190,6 +193,7 @@ import java.util.stream.Collectors;
 		super(element);
 
 		this.tintType = "No tint";
+		this.blockstates = new ArrayList<>();
 		this.boundingBoxes = new ArrayList<>();
 		this.spawnWorldTypes = new ArrayList<>();
 		this.restrictionBiomes = new ArrayList<>();
@@ -354,6 +358,22 @@ import java.util.stream.Collectors;
 			baseTypes.add(BaseType.BLOCKENTITY);
 
 		return baseTypes;
+	}
+
+	public static class Blockstate {
+		public String type; // Can be "boolean", "int", or "enum"
+		public String name;
+
+		public boolean boolDefault;
+
+		public List<String> enumValues; // possible values for enum type
+		public int enumDefaultIndex;
+
+		public int intMin; // minimum value for int type
+		public int intMax; // maximum value for int type
+		public int intDefault;
+
+		public String modelOverride; // blockstates can override block models
 	}
 
 }

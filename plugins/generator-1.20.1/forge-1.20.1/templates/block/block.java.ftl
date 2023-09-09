@@ -78,6 +78,37 @@ public class ${name}Block extends
 		public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	</#if>
 
+	<#if data.useCustomBlockstates>
+		<#list data.blockstates as state>
+			<#if state.type == "boolean">
+				public static final BooleanProperty ${state.name.toUpperCase()} = BooleanProperty.create("${state.name}");
+			<#elseif state.type == "int">
+				public static final IntegerProperty ${state.name.toUpperCase()} = IntegerProperty.create("${state.name}", ${state.intMin}, ${state.intMax});
+			<#elseif state.type == "enum">
+
+				public static enum PropEnum_${state.name} implements StringRepresentable {
+					<#list state.enumValues as val>
+						${val.toUpperCase()}("${val}"),
+					</#list>
+
+					;
+
+					private String name;
+
+					PropEnum_${state.name}(String name) {
+						this.name = name;
+					}
+
+					@Override public String getSerializedName() {
+						return this.name;
+					}
+				}
+
+				public static final EnumProperty<PropEnum_${state.name}> ${state.name.toUpperCase()} = EnumProperty.create("${state.name}", PropEnum_${state.name}.class);
+			</#if>
+		</#list>
+	</#if>
+
 	<#macro blockProperties>
 		BlockBehaviour.Properties.of()
 		${data.material}
@@ -198,7 +229,7 @@ public class ${name}Block extends
 			super(<@blockProperties/>);
 		</#if>
 
-	    <#if data.rotationMode != 0 || data.isWaterloggable>
+	    <#if data.rotationMode != 0 || data.isWaterloggable || data.useCustomBlockstates>
 	    this.registerDefaultState(this.stateDefinition.any()
 	    	<#if data.rotationMode == 1 || data.rotationMode == 3>
 	    	.setValue(FACING, Direction.NORTH)
@@ -212,6 +243,17 @@ public class ${name}Block extends
 	    	</#if>
 	    	<#if data.isWaterloggable>
 	    	.setValue(WATERLOGGED, false)
+	    	</#if>
+	    	<#if data.useCustomBlockstates>
+	    		<#list data.blockstates as state>
+	    			<#if state.type == "boolean">
+						.setValue(${state.name.toUpperCase()}, ${state.boolDefault})
+					<#elseif state.type == "int">
+						.setValue(${state.name.toUpperCase()}, ${state.intDefault})
+					<#elseif state.type == "enum">
+						.setValue(${state.name.toUpperCase()}, PropEnum_${state.name}.${state.enumValues[state.enumDefaultIndex].toUpperCase()})
+					</#if>
+	    		</#list>
 	    	</#if>
 	    );
 		</#if>
@@ -283,7 +325,7 @@ public class ${name}Block extends
 	}
 	</#if>
 
-	<#if data.rotationMode != 0 || data.isWaterloggable>
+	<#if data.rotationMode != 0 || data.isWaterloggable || data.useCustomBlockstates>
 	@Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		<#assign props = []>
 		<#if data.rotationMode == 5>
@@ -296,6 +338,11 @@ public class ${name}Block extends
 		</#if>
 		<#if data.isWaterloggable>
 			<#assign props += ["WATERLOGGED"]>
+		</#if>
+		<#if data.useCustomBlockstates>
+			<#list data.blockstates as state>
+				<#assign props += ["${state.name.toUpperCase()}"]>
+			</#list>
 		</#if>
 		builder.add(${props?join(", ")});
 	}

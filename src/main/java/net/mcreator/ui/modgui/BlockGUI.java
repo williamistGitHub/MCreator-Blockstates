@@ -51,6 +51,7 @@ import net.mcreator.ui.init.UIRES;
 import net.mcreator.ui.laf.renderer.ItemTexturesComboBoxRenderer;
 import net.mcreator.ui.laf.renderer.ModelComboBoxRenderer;
 import net.mcreator.ui.minecraft.*;
+import net.mcreator.ui.minecraft.blockstates.JBlockstateList;
 import net.mcreator.ui.minecraft.boundingboxes.JBoundingBoxList;
 import net.mcreator.ui.procedure.AbstractProcedureSelector;
 import net.mcreator.ui.procedure.NumberProcedureSelector;
@@ -96,6 +97,7 @@ public class BlockGUI extends ModElementGUI<Block> {
 
 	private final JCheckBox disableOffset = L10N.checkbox("elementgui.common.enable");
 	private JBoundingBoxList boundingBoxList;
+	private JBlockstateList blockstateList;
 
 	private ProcedureSelector onBlockAdded;
 	private ProcedureSelector onNeighbourBlockChanges;
@@ -251,6 +253,7 @@ public class BlockGUI extends ModElementGUI<Block> {
 	private final JSpinner fireSpreadSpeed = new JSpinner(new SpinnerNumberModel(0, 0, 1024, 1));
 
 	private final JCheckBox useLootTableForDrops = L10N.checkbox("elementgui.common.use_table_loot_drops");
+	private final JCheckBox useCustomBlockstates = L10N.checkbox("elementgui.common.enable");
 
 	public BlockGUI(MCreator mcreator, ModElement modElement, boolean editingMode) {
 		super(mcreator, modElement, editingMode);
@@ -268,6 +271,7 @@ public class BlockGUI extends ModElementGUI<Block> {
 		fluidRestrictions = new FluidListField(mcreator);
 
 		boundingBoxList = new JBoundingBoxList(mcreator, this, renderType::getSelectedItem);
+		blockstateList = new JBlockstateList(mcreator, this);
 
 		// emulate base_stone_overworld
 		blocksToReplace.setListElements(List.of(
@@ -433,6 +437,7 @@ public class BlockGUI extends ModElementGUI<Block> {
 		JPanel pane8 = new JPanel(new BorderLayout(10, 10));
 		JPanel pane9 = new JPanel(new BorderLayout(10, 10));
 		JPanel bbPane = new JPanel(new BorderLayout(10, 10));
+		JPanel blockstatePane = new JPanel(new BorderLayout(10, 10));
 
 		pane8.setOpaque(false);
 
@@ -901,6 +906,21 @@ public class BlockGUI extends ModElementGUI<Block> {
 				PanelUtils.westAndEastElement(selp, PanelUtils.centerAndSouthElement(selp3, soundProperties))));
 		pane3.setOpaque(false);
 
+		JPanel cbCheckboxHolder = new JPanel(new GridLayout(1, 2, 10, 2));
+		cbCheckboxHolder.setOpaque(false);
+
+		cbCheckboxHolder.add(HelpUtils.wrapWithHelpButton(this.withEntry("block/use_custom_blockstates"),
+				L10N.label("elementgui.block.use_custom_blockstates")));
+		cbCheckboxHolder.add(useCustomBlockstates);
+		useCustomBlockstates.setOpaque(false);
+
+		useCustomBlockstates.addActionListener(e -> blockstateList.setEnabled(useCustomBlockstates.isSelected()));
+
+		blockstatePane.add(PanelUtils.northAndCenterElement(PanelUtils.join(FlowLayout.LEFT, cbCheckboxHolder), blockstateList));
+		blockstatePane.setOpaque(false);
+
+		blockstatePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
 		JPanel events2 = new JPanel(new GridLayout(4, 5, 5, 5));
 		events2.setOpaque(false);
 
@@ -1211,6 +1231,7 @@ public class BlockGUI extends ModElementGUI<Block> {
 		addPage(L10N.t("elementgui.common.page_bounding_boxes"), bbPane);
 		addPage(L10N.t("elementgui.common.page_properties"), pane3);
 		addPage(L10N.t("elementgui.common.page_advanced_properties"), pane7);
+		addPage(L10N.t("elementgui.block.page_blockstates"), blockstatePane);
 		addPage(L10N.t("elementgui.block.page_tile_entity"), pane8);
 		addPage(L10N.t("elementgui.block.page_energy_fluid_storage"), pane10);
 		addPage(L10N.t("elementgui.common.page_triggers"), pane4);
@@ -1370,6 +1391,9 @@ public class BlockGUI extends ModElementGUI<Block> {
 		enchantPowerBonus.setValue(block.enchantPowerBonus);
 		hasTransparency.setSelected(block.hasTransparency);
 		connectedSides.setSelected(block.connectedSides);
+		useCustomBlockstates.setSelected(block.useCustomBlockstates);
+		blockstateList.setEnabled(block.useCustomBlockstates);
+		blockstateList.setBlockstates(block.blockstates);
 		displayFluidOverlay.setSelected(block.displayFluidOverlay);
 		hasEnergyStorage.setSelected(block.hasEnergyStorage);
 		isFluidTank.setSelected(block.isFluidTank);
@@ -1598,6 +1622,9 @@ public class BlockGUI extends ModElementGUI<Block> {
 		block.textureFront = textureFront.getID();
 		block.textureRight = textureRight.getID();
 		block.textureBack = textureBack.getID();
+
+		block.useCustomBlockstates = useCustomBlockstates.isSelected();
+		block.blockstates = blockstateList.getBlockstates();
 
 		block.disableOffset = disableOffset.isSelected();
 		block.boundingBoxes = boundingBoxList.getBoundingBoxes();
