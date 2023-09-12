@@ -183,7 +183,6 @@ import java.util.stream.Collectors;
 	public int frequencyOnChunk;
 	public int minGenerateHeight;
 	public int maxGenerateHeight;
-	public Procedure generateCondition;
 
 	private Block() {
 		this(null);
